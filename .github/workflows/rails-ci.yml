@@ -41,9 +41,9 @@ jobs:
 
       - name: Preparar banco de dados
         run: |
-          bin/rails db:create
-          bin/rails db:schema:load
-          bin/rails db:test:prepare
+          bundle exec rails db:create
+          bundle exec rails db:schema:load
+          bundle exec rails db:test:prepare
 
       - name: Rodar testes
-        run: bin/rails test
+        run: bundle exec rails test
