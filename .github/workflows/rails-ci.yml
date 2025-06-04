@@ -42,7 +42,13 @@ jobs:
       - name: Instalar dependências
         run: bundle install
 
+      - name: Aguardar serviço de banco de dados
+        run: |
+          sleep 15 
+
       - name: Preparar banco de dados
+        env:
+          PGHOST: postgres
         run: |
           RAILS_ENV=test bin/rails db:create
           RAILS_ENV=test bin/rails db:schema:load
