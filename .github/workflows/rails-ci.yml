@@ -31,7 +31,10 @@ jobs:
           bundler-cache: true
 
       - name: Copiar config de banco para CI
-        run: cp config/database.yml.ci config/database.yml
+        run: |
+          cp config/database.yml.ci config/database.yml
+          ls -l config/
+          cat config/database.yml
 
       - name: Instalar dependências
         run: bundle install
