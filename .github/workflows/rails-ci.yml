@@ -1,0 +1,40 @@
+name: Rails CI
+
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:13
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: myapp_test
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd="pg_isready"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    steps:
+      - name: Checkout do código
+        uses: actions/checkout@v3
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 3.1  # Altere para a versão usada no seu projeto
+          bundler-cache: true
+
+      - name: Instalar dependências
+        run: |
+          bundle install
+
+      - name: Preparar banco de dados
+        run: |
+          cp config/database.yml.ci config/database.yml
+          bin/rails db:create
