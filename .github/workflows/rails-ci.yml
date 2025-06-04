@@ -27,14 +27,20 @@ jobs:
       - name: Setup Ruby
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version: 3.1  # Altere para a versão usada no seu projeto
+          ruby-version: 3.1
           bundler-cache: true
 
+      - name: Copiar config de banco para CI
+        run: cp config/database.yml.ci config/database.yml
+
       - name: Instalar dependências
-        run: |
-          bundle install
+        run: bundle install
 
       - name: Preparar banco de dados
         run: |
-          cp config/database.yml.ci config/database.yml
           bin/rails db:create
+          bin/rails db:schema:load
+          bin/rails db:test:prepare
+
+      - name: Rodar testes
+        run: bin/rails test
