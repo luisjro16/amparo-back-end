@@ -24,6 +24,9 @@ jobs:
       - name: Checkout do código
         uses: actions/checkout@v3
 
+      - name: Garantir permissão de execução no bin/rails
+        run: chmod +x bin/rails
+
       - name: Setup Ruby
         uses: ruby/setup-ruby@v1
         with:
