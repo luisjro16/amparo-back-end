@@ -35,7 +35,7 @@ class Api::V1::PacienteController < ApplicationController
     private
     
     def paciente_params
-        params.require(:paciente).permit(:nome, :email, :senha_digest)
+        params.require(:paciente).permit(:nome, :email, :password)
     end
 
     def set_paciente

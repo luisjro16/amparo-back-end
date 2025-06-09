@@ -3,6 +3,7 @@ Rails.application.routes.draw do
     namespace :v1 do
       post 'login', to: 'sessions#create'
 
+      get '/health', to: 'health#check'
       resources :medicacoes
       resources :agendamentos
       resources :registro_de_tomadas

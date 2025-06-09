@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_05_26_193702) do
+ActiveRecord::Schema[8.0].define(version: 2025_06_09_163954) do
   create_table "agendamentos", force: :cascade do |t|
     t.datetime "horario"
     t.integer "paciente_id", null: false
@@ -36,9 +36,10 @@ ActiveRecord::Schema[8.0].define(version: 2025_05_26_193702) do
   create_table "pacientes", force: :cascade do |t|
     t.string "nome"
     t.string "email"
-    t.string "senha_digest"
+    t.string "password_digest"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "username"
   end
 
   create_table "registro_de_medicacaos", force: :cascade do |t|
