@@ -38,7 +38,7 @@ Este projeto utiliza **Python 3.12**. É altamente recomendado o uso de um ambie
 
 1.  **Clone o repositório:**
     ```bash
-    git clone [https://github.com/luisjro16/amparo-back-end.git](https://github.com/luisjro16/amparo-back-end.git)
+    git clone https://github.com/luisjro16/amparo-back-end.git
     cd amparo-back-end
     ```
 
