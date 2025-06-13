@@ -21,7 +21,7 @@ O backend do Amparo é uma API RESTful que fornece os endpoints necessários par
 * **Python**: Versão especificada abaixo.
 * **Django**: Framework web de alto nível.
 * **Django REST Framework**: Toolkit para a construção de Web APIs.
-* **SQLite3**: Banco de dados para ambiente de desenvolvimento.
+* **PostgreSQL**: Banco de dados relacional robusto para desenvolvimento e produção.
 * **Pip**: Gerenciador de dependências Python.
 
 ## Versão do Python
@@ -32,13 +32,13 @@ Este projeto utiliza **Python 3.12**. É altamente recomendado o uso de um ambie
 
 * **Python** 3.12 ou superior.
 * **Pip** (geralmente já vem instalado com o Python).
-* **SQLite 3** (já vem incluído na biblioteca padrão do Python).
+* **Servidor PostgreSQL** (versão 12 ou superior recomendada).
 
 ## Configuração Inicial
 
 1.  **Clone o repositório:**
     ```bash
-    git clone https://github.com/luisjro16/amparo-back-end.git
+    git clone [https://github.com/luisjro16/amparo-back-end.git](https://github.com/luisjro16/amparo-back-end.git)
     cd amparo-back-end
     ```
 
@@ -66,15 +66,37 @@ Este projeto utiliza **Python 3.12**. É altamente recomendado o uso de um ambie
 
 ## Configuração do Banco de Dados
 
-Este projeto utiliza SQLite3 para o ambiente de desenvolvimento, conforme configurado em `settings.py`.
+Este projeto está configurado para usar **PostgreSQL** tanto para desenvolvimento quanto para produção.
 
-1.  **Execute as migrações:**
-    O Django criará o arquivo de banco de dados `db.sqlite3` automaticamente na primeira vez que você rodar as migrações. Este comando cria todas as tabelas necessárias baseadas nos seus modelos.
+1.  **Instale e Inicie o PostgreSQL:**
+    Certifique-se de ter um servidor PostgreSQL rodando na sua máquina. Se não tiver, você pode baixá-lo através do [site oficial](https://www.enterprisedb.com/downloads/postgres-postgresql-downloads).
+
+2.  **Crie o Banco de Dados:**
+    Antes de rodar as migrações, você precisa criar um banco de dados vazio para o projeto. Você pode usar uma ferramenta gráfica como o **pgAdmin 4** (que vem com a instalação do Postgres) para criar um novo banco de dados.
+    * **Nome sugerido:** `amparo_db`
+
+3.  **Configure as Variáveis de Ambiente:**
+    Para segurança, as credenciais do banco de dados não devem ser escritas diretamente no código. Crie um arquivo chamado `.env` na raiz do projeto e adicione suas credenciais.
+    
+    Crie o arquivo `.env` com o seguinte conteúdo:
+    ```
+    # Exemplo de conteúdo para o arquivo .env
+    SECRET_KEY='sua-secret-key-super-segura-aqui'
+    DB_NAME='amparo_db'
+    DB_USER='postgres'
+    DB_PASSWORD='sua_senha_do_banco'
+    DB_HOST='localhost'
+    DB_PORT='5432'
+    ```
+    *O arquivo `settings.py` já deve estar configurado para ler essas variáveis. O `.gitignore` do projeto deve conter a linha `.env` para que este arquivo nunca seja enviado para o GitHub.*
+
+4.  **Execute as migrações:**
+    Este comando irá ler os modelos do Django e criar todas as tabelas no seu banco de dados PostgreSQL.
     ```bash
     python manage.py migrate
     ```
 
-2.  **(Opcional, mas recomendado) Crie um superusuário:**
+5.  **(Opcional, mas recomendado) Crie um superusuário:**
     Para acessar o painel de administração do Django, crie um usuário administrador.
     ```bash
     python manage.py createsuperuser
