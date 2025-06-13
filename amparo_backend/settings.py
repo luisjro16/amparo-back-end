@@ -26,7 +26,7 @@ SECRET_KEY = os.environ.get('SECRET_KEY', 'amparomossoro2025')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['localhost', '192.168.1.140', '127.0.0.1']
+ALLOWED_HOSTS = ['localhost', '192.168.1.140', '127.0.0.1', '192.168.0.122']
 
 
 # Application definition
@@ -88,8 +88,12 @@ WSGI_APPLICATION = 'amparo_backend.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'amparo_db',           
+        'USER': 'postgres',           
+        'PASSWORD': 'postgres',  
+        'HOST': 'localhost',                   
+        'PORT': '5432',                    
     }
 }
 
