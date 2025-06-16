@@ -7,18 +7,33 @@ class PacienteSerializer(serializers.ModelSerializer):
     class Meta:
         model = Paciente
         fields = ['id', 'username', 'email', 'first_name', 'last_name']
+        
+class PacienteCreateSerializer(serializers.ModelSerializer):
+    password = serializers.CharField(write_only=True, required=True, style={'input_type': 'password'})
+
+    class Meta:
+        model = Paciente
+        fields = ['username', 'password']
+    
+    def create(self, validated_data):
+        username = validated_data['username']
+        placeholder_email = f"{username.lower()}@amparo.app"
+        if Paciente.objects.filter(email=placeholder_email).exists():
+            raise serializers.ValidationError({"error": "Um erro inesperado ocorreu. Tente um nome de usuário diferente."})
+        
+        user = Paciente.objects.create_user(
+            username=username,
+            password=validated_data['password'],
+            email=placeholder_email 
+        )
+        return user
 
 class MedicamentoSerializer(serializers.ModelSerializer):
-    # ModelSerializer é uma classe "mágica" que cria campos e validações
-    # automaticamente a partir do seu modelo. Muito prático!
-    
-    # Para mostrar alguns dados do paciente, e não apenas o ID.
-    # read_only=True significa que este campo não será exigido ao criar/atualizar um medicamento.
     paciente = PacienteSerializer(read_only=True)
 
     class Meta:
         model = Medicamento
-        # Lista os campos que devem ser incluídos na representação JSON.
+        
         fields = ['id', 'nome', 'dose', 'composto', 'meia_vida', 'descricao', 'paciente']
         
 class AgendamentoSerializer(serializers.ModelSerializer):
