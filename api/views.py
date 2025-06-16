@@ -2,35 +2,34 @@ from django.shortcuts import render
 
 from rest_framework import viewsets, permissions
 from .models import Paciente, Medicamento, Agendamento, RegistroMedicacao
-from .serializers import PacienteSerializer, MedicamentoSerializer, AgendamentoSerializer, RegistroMedicacaoSerializer
+from .serializers import PacienteSerializer, MedicamentoSerializer, AgendamentoSerializer, RegistroMedicacaoSerializer, PacienteCreateSerializer
 
 class PacienteViewSet(viewsets.ModelViewSet):
+    queryset = Paciente.objects.all()
     serializer_class = PacienteSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    
+    def get_serializer_class(self):
+        if self.action == 'create':
+            return PacienteCreateSerializer
+        return PacienteSerializer
+    
+    def get_permissions(self):
+        if self.action == 'create':
+            return [permissions.AllowAny()]
+        return [permissions.IsAuthenticated()]
+    
 
 class MedicamentoViewSet(viewsets.ModelViewSet):
-    """
-    API endpoint que permite que medicamentos sejam vistos ou editados.
-    """
-    # O serializer que deve ser usado para converter os dados
-    serializer_class = MedicamentoSerializer
     
-    # Define que apenas usuários autenticados podem acessar este endpoint
+    serializer_class = MedicamentoSerializer
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        """
-        Esta view deve retornar uma lista de todos os medicamentos
-        para o usuário atualmente autenticado.
-        """
-        # self.request.user é o objeto do usuário logado (o Paciente)
+    
         return Medicamento.objects.filter(paciente=self.request.user).order_by('-created_at')
 
     def perform_create(self, serializer):
-        """
-        Associa o medicamento que está sendo criado ao usuário logado.
-        """
-        # Ao salvar, passamos o paciente logado como o dono do medicamento.
+        
         serializer.save(paciente=self.request.user)
         
 class AgendamentoViewSet(viewsets.ModelViewSet):
