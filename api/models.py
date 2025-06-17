@@ -12,11 +12,8 @@ class Medicamento(models.Model):
     paciente = models.ForeignKey(Paciente, on_delete=models.CASCADE, related_name='medicamentos')
 
     nome = models.CharField(max_length=255, null=False, blank=False)
-    dose = models.CharField(max_length=100, null=False, blank=False)
-    
-    composto = models.CharField(max_length=255, null=True, blank=True)
-    meia_vida = models.CharField(max_length=100, null=True, blank=True)
-    descricao = models.TextField(null=True, blank=True) 
+    dosagem = models.CharField(max_length=100, null=False, blank=True)
+    observacao = models.TextField(null=True, blank=True)
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -28,7 +25,18 @@ class Agendamento(models.Model):
     paciente = models.ForeignKey(Paciente, on_delete=models.CASCADE, related_name='agendamentos')
     medicamento = models.ForeignKey(Medicamento, on_delete=models.CASCADE, related_name='agendamentos')
 
-    horario = models.DateTimeField(null=False, blank=False)
+    horario = models.TimeField(null=False, blank=False)
+    
+    FREQUENCIA_CHOICES = [
+        ('Diário', 'Diário'),
+        ('Semanal', 'Semanal'),
+    ]
+    frequencia = models.CharField(
+        max_length=50,
+        choices=FREQUENCIA_CHOICES,
+        null=False,
+        blank=False
+    )   
     
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
