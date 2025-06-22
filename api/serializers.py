@@ -53,12 +53,11 @@ class AgendamentoSerializer(serializers.ModelSerializer):
         
         
 class RegistroMedicacaoSerializer(serializers.ModelSerializer):
-    paciente = PacienteSerializer(read_only=True)
     agendamento = AgendamentoSerializer(read_only=True)
     
     class Meta:
         model = RegistroMedicacao
-        fields = ['id', 'data_hora_tomada', 'tomou']
+        fields = ['id', 'data_hora_tomada', 'tomou', 'agendamento']
         
 class RegistroMedicacaoCreateSerializer(serializers.ModelSerializer):
     agendamento = serializers.PrimaryKeyRelatedField(queryset=Agendamento.objects.all())

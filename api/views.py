@@ -167,8 +167,14 @@ class RegistroMedicacaoViewSet(viewsets.ModelViewSet):
     serializer_class = RegistroMedicacaoCreateSerializer
     permission_classes = [permissions.IsAuthenticated]
 
+    def get_serializer_class(self):
+        if self.action == 'create':
+            return RegistroMedicacaoCreateSerializer
+        
+        return RegistroMedicacaoSerializer
+    
     def get_queryset(self):
-        return RegistroMedicacao.objects.filter(paciente=self.request.user)
+        return RegistroMedicacao.objects.filter(paciente=self.request.user).order_by('-data_hora_tomada')
 
     def perform_create(self, serializer):
         serializer.save(paciente=self.request.user)
