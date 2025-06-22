@@ -4,7 +4,7 @@ from rest_framework import viewsets, permissions
 from rest_framework.response import Response
 from rest_framework import status
 from .models import Paciente, Medicamento, Agendamento, RegistroMedicacao
-from .serializers import PacienteSerializer, MedicamentoSerializer, AgendamentoSerializer, RegistroMedicacaoSerializer, PacienteCreateSerializer, MedicamentoComAgendamentoSerializer
+from .serializers import PacienteSerializer, MedicamentoSerializer, AgendamentoSerializer, RegistroMedicacaoSerializer, PacienteCreateSerializer, MedicamentoComAgendamentoSerializer, RegistroMedicacaoCreateSerializer
 
 class PacienteViewSet(viewsets.ModelViewSet):
     queryset = Paciente.objects.all()
@@ -40,15 +40,23 @@ class MedicamentoViewSet(viewsets.ModelViewSet):
         )
 
         # objeto Agendamento
-        Agendamento.objects.create(
+        agendamento = Agendamento.objects.create(
             paciente=request.user,
             medicamento=medicamento,
             horario=validated_data['horario'],
             frequencia=validated_data['frequencia']
         )
         
-        return Response(MedicamentoSerializer(medicamento).data, status=status.HTTP_201_CREATED)
+        medicamento_data = MedicamentoSerializer(medicamento).data
+        agendamento_data = AgendamentoSerializer(agendamento).data
         
+        response_data = {
+            'medicamento': medicamento_data,
+            'agendamento': agendamento_data
+        }
+
+        return Response(response_data, status=status.HTTP_201_CREATED)
+
 class AgendamentoViewSet(viewsets.ModelViewSet):
     serializer_class = AgendamentoSerializer
     permission_classes = [permissions.IsAuthenticated]
@@ -59,12 +67,23 @@ class AgendamentoViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(paciente=self.request.user)
         
-class RegistroMedicacaoViewSet(viewsets.ModelViewSet):
-    serializer_class = RegistroMedicacaoSerializer
-    permission_classes = [permissions.IsAuthenticated]
+# class RegistroMedicacaoViewSet(viewsets.ModelViewSet):
+#     serializer_class = RegistroMedicacaoSerializer
+#     permission_classes = [permissions.IsAuthenticated]
     
+#     def get_queryset(self):
+#         return RegistroMedicacao.objects.filter(paciente=self.request.user).order_by('-created_at')
+
+#     def perform_create(self, serializer):
+#         serializer.save(paciente=self.request.user)
+        
+class RegistroMedicacaoViewSet(viewsets.ModelViewSet):
+    queryset = RegistroMedicacao.objects.all()
+    serializer_class = RegistroMedicacaoCreateSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
     def get_queryset(self):
-        return RegistroMedicacao.objects.filter(paciente=self.request.user).order_by('-created_at')
+        return RegistroMedicacao.objects.filter(paciente=self.request.user)
 
     def perform_create(self, serializer):
         serializer.save(paciente=self.request.user)
