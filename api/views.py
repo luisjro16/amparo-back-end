@@ -53,21 +53,17 @@ class MedicamentoViewSet(viewsets.ModelViewSet):
         if validated_data.get('duracao_valor'):
             data_fim_tratamento = date.today() + timedelta(days=validated_data['duracao_valor'])
 
-        # --- LÓGICA DE CÁLCULO DE HORÁRIOS CORRIGIDA ---
 
         horario_inicio_time = validated_data['horario_inicio']
-        horario_fim_time = validated_data.get('horario_fim') # Pega o horário de fim (pode ser nulo)
+        horario_fim_time = validated_data.get('horario_fim') 
         intervalo_horas = validated_data['intervalo']
 
-        # Combina os horários com a data de hoje para poder comparar e somar
         horario_atual_dt = datetime.combine(date.today(), horario_inicio_time)
         
-        # Se o usuário definiu um horário de fim, usamos ele. Senão, usamos o fim do dia como limite.
         limite_do_dia_dt = datetime.combine(date.today(), horario_fim_time) if horario_fim_time else datetime.combine(date.today(), datetime.max.time())
 
         agendamentos_criados = []
         
-        # Loop INTELIGENTE que respeita o horário de fim
         while horario_atual_dt <= limite_do_dia_dt:
             agendamento = Agendamento.objects.create(
                 paciente=request.user,
@@ -78,10 +74,8 @@ class MedicamentoViewSet(viewsets.ModelViewSet):
             )
             agendamentos_criados.append(agendamento)
             
-            # Prepara o próximo horário para a próxima iteração do loop
             horario_atual_dt += timedelta(hours=intervalo_horas)
             
-            # Trava de segurança para evitar loops infinitos caso a lógica tenha um bug
             if len(agendamentos_criados) >= (24 // intervalo_horas) + 1:
                 break
         
@@ -92,6 +86,61 @@ class MedicamentoViewSet(viewsets.ModelViewSet):
             "medicamento": medicamento_data,
             "agendamentos": agendamentos_data
         }, status=status.HTTP_201_CREATED)
+        
+    def update(self, request, *args, **kwargs):
+        serializer = MedicamentoComAgendamentoSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        validated_data = serializer.validated_data
+        
+        medicamento = self.get_object()
+        
+        medicamento.nome = validated_data['nome']
+        medicamento.dosagem_valor = validated_data.get('dosagem_valor')
+        medicamento.dosagem_unidade = validated_data.get('dosagem_unidade')
+        medicamento.observacao = validated_data.get('observacao', '')
+        medicamento.save()
+        
+        medicamento.agendamentos.all().delete()
+        
+        data_fim_tratamento = None
+        if validated_data.get('duracao_valor'):
+            data_fim_tratamento = date.today() + timedelta(days=validated_data['duracao_valor'])
+
+
+        horario_inicio_time = validated_data['horario_inicio']
+        horario_fim_time = validated_data.get('horario_fim') 
+        intervalo_horas = validated_data['intervalo']
+
+        horario_atual_dt = datetime.combine(date.today(), horario_inicio_time)
+        
+        limite_do_dia_dt = datetime.combine(date.today(), horario_fim_time) if horario_fim_time else datetime.combine(date.today(), datetime.max.time())
+
+        agendamentos_criados = []
+        
+        while horario_atual_dt <= limite_do_dia_dt:
+            agendamento = Agendamento.objects.create(
+                paciente=request.user,
+                medicamento=medicamento,
+                horario=horario_atual_dt.time(),
+                frequencia='Diário',
+                data_fim=data_fim_tratamento
+            )
+            agendamentos_criados.append(agendamento)
+            
+            horario_atual_dt += timedelta(hours=intervalo_horas)
+            
+            if len(agendamentos_criados) >= (24 // intervalo_horas) + 1:
+                break
+        
+        serializer_resposta = self.get_serializer(medicamento)
+    
+        return Response(serializer_resposta.data, status=status.HTTP_200_OK)
+    
+    def destroy(self, request, *args, **kwargs):
+        medicamento = self.get_object()
+        medicamento.delete()
+        
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 class AgendamentoViewSet(viewsets.ModelViewSet):
     serializer_class = AgendamentoSerializer
