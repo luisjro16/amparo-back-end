@@ -1,5 +1,6 @@
 from django.shortcuts import render
 
+from datetime import date, timedelta, datetime
 from rest_framework import viewsets, permissions
 from rest_framework.response import Response
 from rest_framework import status
@@ -22,40 +23,75 @@ class PacienteViewSet(viewsets.ModelViewSet):
     
 
 class MedicamentoViewSet(viewsets.ModelViewSet):
-    
     serializer_class = MedicamentoSerializer
     permission_classes = [permissions.IsAuthenticated]
 
+    def get_queryset(self):
+        """Filtra para mostrar apenas os medicamentos do usuário logado."""
+        return Medicamento.objects.filter(paciente=self.request.user).order_by('-nome')
+
+    def get_serializer_class(self):
+        if self.action == 'create':
+            return MedicamentoComAgendamentoSerializer
+        
+        return self.serializer_class
+
     def create(self, request, *args, **kwargs):
-        serializer = MedicamentoComAgendamentoSerializer(data=request.data)
+        serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         validated_data = serializer.validated_data
 
-        # objeto Medicamento
         medicamento = Medicamento.objects.create(
             paciente=request.user,
             nome=validated_data['nome'],
-            dosagem=validated_data.get('dosagem', ''),
+            dosagem_valor=validated_data.get('dosagem_valor'),
+            dosagem_unidade=validated_data.get('dosagem_unidade', 'mg'),
             observacao=validated_data.get('observacao', '')
         )
 
-        # objeto Agendamento
-        agendamento = Agendamento.objects.create(
-            paciente=request.user,
-            medicamento=medicamento,
-            horario=validated_data['horario'],
-            frequencia=validated_data['frequencia']
-        )
-        
-        medicamento_data = MedicamentoSerializer(medicamento).data
-        agendamento_data = AgendamentoSerializer(agendamento).data
-        
-        response_data = {
-            'medicamento': medicamento_data,
-            'agendamento': agendamento_data
-        }
+        data_fim_tratamento = None
+        if validated_data.get('duracao_valor'):
+            data_fim_tratamento = date.today() + timedelta(days=validated_data['duracao_valor'])
 
-        return Response(response_data, status=status.HTTP_201_CREATED)
+        # --- LÓGICA DE CÁLCULO DE HORÁRIOS CORRIGIDA ---
+
+        horario_inicio_time = validated_data['horario_inicio']
+        horario_fim_time = validated_data.get('horario_fim') # Pega o horário de fim (pode ser nulo)
+        intervalo_horas = validated_data['intervalo']
+
+        # Combina os horários com a data de hoje para poder comparar e somar
+        horario_atual_dt = datetime.combine(date.today(), horario_inicio_time)
+        
+        # Se o usuário definiu um horário de fim, usamos ele. Senão, usamos o fim do dia como limite.
+        limite_do_dia_dt = datetime.combine(date.today(), horario_fim_time) if horario_fim_time else datetime.combine(date.today(), datetime.max.time())
+
+        agendamentos_criados = []
+        
+        # Loop INTELIGENTE que respeita o horário de fim
+        while horario_atual_dt <= limite_do_dia_dt:
+            agendamento = Agendamento.objects.create(
+                paciente=request.user,
+                medicamento=medicamento,
+                horario=horario_atual_dt.time(),
+                frequencia='Diário',
+                data_fim=data_fim_tratamento
+            )
+            agendamentos_criados.append(agendamento)
+            
+            # Prepara o próximo horário para a próxima iteração do loop
+            horario_atual_dt += timedelta(hours=intervalo_horas)
+            
+            # Trava de segurança para evitar loops infinitos caso a lógica tenha um bug
+            if len(agendamentos_criados) >= (24 // intervalo_horas) + 1:
+                break
+        
+        agendamentos_data = AgendamentoSerializer(agendamentos_criados, many=True).data
+        medicamento_data = MedicamentoSerializer(medicamento).data
+        
+        return Response({
+            "medicamento": medicamento_data,
+            "agendamentos": agendamentos_data
+        }, status=status.HTTP_201_CREATED)
 
 class AgendamentoViewSet(viewsets.ModelViewSet):
     serializer_class = AgendamentoSerializer
