@@ -10,9 +10,10 @@ router = DefaultRouter()
 router.register(r'medicamentos', MedicamentoViewSet, basename='medicamento')
 router.register(r'pacientes', PacienteViewSet, basename='paciente')
 router.register(r'agendamentos', AgendamentoViewSet, basename='agendamento')
-router.register(r'registrosmedicacao', RegistroMedicacaoViewSet, basename='registromedicacao')
+router.register(r'registros', RegistroMedicacaoViewSet, basename='registromedicacao')
 
 
 urlpatterns = [
     path('', include(router.urls)),
+    
 ]
