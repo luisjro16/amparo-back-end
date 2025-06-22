@@ -66,6 +66,16 @@ class RegistroMedicacaoCreateSerializer(serializers.ModelSerializer):
         model = RegistroMedicacao
         fields = ['agendamento', 'tomou', 'data_hora_tomada']
         
+class RegistroMedicacaoUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RegistroMedicacao
+        
+        fields = ['tomou', 'data_hora_tomada']
+        extra_kwargs = {
+            'tomou': {'required': False},
+            'data_hora_tomada': {'required': False},
+        }
+        
 class MedicamentoComAgendamentoSerializer(serializers.Serializer):
     
     # Campos do Medicamento

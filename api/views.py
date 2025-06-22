@@ -5,7 +5,7 @@ from rest_framework import viewsets, permissions
 from rest_framework.response import Response
 from rest_framework import status
 from .models import Paciente, Medicamento, Agendamento, RegistroMedicacao
-from .serializers import PacienteSerializer, MedicamentoSerializer, AgendamentoSerializer, RegistroMedicacaoSerializer, PacienteCreateSerializer, MedicamentoComAgendamentoSerializer, RegistroMedicacaoCreateSerializer
+from .serializers import PacienteSerializer, MedicamentoSerializer, AgendamentoSerializer, RegistroMedicacaoSerializer, PacienteCreateSerializer, MedicamentoComAgendamentoSerializer, RegistroMedicacaoCreateSerializer, RegistroMedicacaoUpdateSerializer
 
 class PacienteViewSet(viewsets.ModelViewSet):
     queryset = Paciente.objects.all()
@@ -163,18 +163,40 @@ class AgendamentoViewSet(viewsets.ModelViewSet):
 #         serializer.save(paciente=self.request.user)
         
 class RegistroMedicacaoViewSet(viewsets.ModelViewSet):
-    queryset = RegistroMedicacao.objects.all()
-    serializer_class = RegistroMedicacaoCreateSerializer
+    queryset = RegistroMedicacao.objects.all().order_by('-data_hora_tomada')
     permission_classes = [permissions.IsAuthenticated]
 
     def get_serializer_class(self):
+        
         if self.action == 'create':
             return RegistroMedicacaoCreateSerializer
+       
+        if self.action in ['update', 'partial_update']:
+            return RegistroMedicacaoUpdateSerializer
         
         return RegistroMedicacaoSerializer
     
     def get_queryset(self):
-        return RegistroMedicacao.objects.filter(paciente=self.request.user).order_by('-data_hora_tomada')
-
+        return self.queryset.filter(paciente=self.request.user)
+    
     def perform_create(self, serializer):
         serializer.save(paciente=self.request.user)
+        
+    def partial_update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        
+        serializer = self.get_serializer(instance, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+
+        read_serializer = RegistroMedicacaoSerializer(instance)
+        return Response(read_serializer.data)
+
+    def update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+
+        read_serializer = RegistroMedicacaoSerializer(instance)
+        return Response(read_serializer.data)
