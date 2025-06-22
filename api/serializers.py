@@ -30,19 +30,21 @@ class PacienteCreateSerializer(serializers.ModelSerializer):
 
 class MedicamentoSerializer(serializers.ModelSerializer):
     paciente = PacienteSerializer(read_only=True)
+    
+    dosagem_formatada = serializers.CharField(read_only=True)
 
     class Meta:
         model = Medicamento
-        
-        fields = ['id', 'nome', 'dosagem', 'observacao', 'paciente']
-        
+
+        fields = ['id', 'nome', 'dosagem_valor', 'dosagem_unidade', 'observacao', 'paciente', 'dosagem_formatada']
+
 class AgendamentoSerializer(serializers.ModelSerializer):
     paciente = PacienteSerializer(read_only=True)
     medicamento = MedicamentoSerializer(read_only=True)
     
     class Meta:
         model = Agendamento
-        fields = ['id', 'horario', 'frequencia', 'paciente', 'medicamento']
+        fields = ['id', 'horario', 'frequencia', 'paciente', 'medicamento', 'data_fim']
         
 class RegistroMedicacaoSerializer(serializers.ModelSerializer):
     paciente = PacienteSerializer(read_only=True)
@@ -63,9 +65,12 @@ class MedicamentoComAgendamentoSerializer(serializers.Serializer):
     
     # Campos do Medicamento
     nome = serializers.CharField(max_length=255)
-    dosagem = serializers.CharField(max_length=100, required=False, allow_blank=True)
+    dosagem_valor = serializers.DecimalField(max_digits=10, decimal_places=2, required=False)
+    dosagem_unidade = serializers.CharField(max_length=20, required=False)
     observacao = serializers.CharField(required=False, allow_blank=True, allow_null=True)
 
     # Campos do Agendamento
-    horario = serializers.TimeField()
-    frequencia = serializers.ChoiceField(choices=['Diário', 'Semanal'])
+    horario_inicio = serializers.TimeField()
+    horario_fim = serializers.TimeField(required=False, allow_null=True)
+    intervalo = serializers.IntegerField(min_value=1, max_value=24)
+    duracao_valor = serializers.IntegerField(min_value=1, required=False, allow_null=True)
