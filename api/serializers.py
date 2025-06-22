@@ -27,16 +27,21 @@ class PacienteCreateSerializer(serializers.ModelSerializer):
             email=placeholder_email 
         )
         return user
+    
+class AgendamentoSimplesSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Agendamento
+        fields = ['id', 'horario', 'frequencia', 'data_fim']
 
 class MedicamentoSerializer(serializers.ModelSerializer):
     paciente = PacienteSerializer(read_only=True)
-    
     dosagem_formatada = serializers.CharField(read_only=True)
+    agendamentos = AgendamentoSimplesSerializer(many=True, read_only=True)
 
     class Meta:
         model = Medicamento
 
-        fields = ['id', 'nome', 'dosagem_valor', 'dosagem_unidade', 'observacao', 'paciente', 'dosagem_formatada']
+        fields = ['id', 'nome', 'dosagem_valor', 'dosagem_unidade', 'observacao', 'paciente', 'dosagem_formatada', 'agendamentos', 'is_active']
 
 class AgendamentoSerializer(serializers.ModelSerializer):
     paciente = PacienteSerializer(read_only=True)
@@ -45,6 +50,7 @@ class AgendamentoSerializer(serializers.ModelSerializer):
     class Meta:
         model = Agendamento
         fields = ['id', 'horario', 'frequencia', 'paciente', 'medicamento', 'data_fim']
+        
         
 class RegistroMedicacaoSerializer(serializers.ModelSerializer):
     paciente = PacienteSerializer(read_only=True)
