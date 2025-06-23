@@ -10,16 +10,29 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
+    services:
+      postgres:
+        image: postgres:14-alpine
+        env:
+          POSTGRES_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          POSTGRES_USER: postgres
+          POSTGRES_DB: testdb
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
     steps:
-      
       - name: Checkout repository
         uses: actions/checkout@v4
 
-     
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.12'    
+          python-version: '3.12'
 
       - name: Install Dependencies
         run: |
@@ -29,5 +42,10 @@ jobs:
       - name: Run Tests
         env:
           SECRET_KEY: ${{ secrets.SECRET_KEY }}
+          DB_NAME: testdb
+          DB_USER: postgres
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          DB_HOST: 127.0.0.1
+          DB_PORT: '5432'
         run: |
-          python manage.py test
+          python manage.py test --no-input
