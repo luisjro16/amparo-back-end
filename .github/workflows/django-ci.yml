@@ -48,4 +48,4 @@ jobs:
           DB_HOST: 127.0.0.1
           DB_PORT: '5432'
         run: |
-          python manage.py test
+          python manage.py test --no-input
