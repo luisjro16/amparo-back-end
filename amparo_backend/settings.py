@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 
 from pathlib import Path
 import os
+import sys
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -89,13 +90,19 @@ WSGI_APPLICATION = 'amparo_backend.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'amparo_db',           
-        'USER': 'postgres',           
-        'PASSWORD': 'postgres',  
-        'HOST': 'localhost',                   
-        'PORT': '5432',                    
+        'NAME': os.environ.get('DB_NAME', 'amparo_db'),
+        'USER': os.environ.get('DB_USER', 'postgres'),
+        'PASSWORD': os.environ.get('DB_PASSWORD', 'postgres'),
+        'HOST': os.environ.get('DB_HOST', 'localhost'),
+        'PORT': os.environ.get('DB_PORT', '5432'),
     }
 }
+
+if 'test' in sys.argv:
+    DATABASES['default']['NAME'] = None # Força a criação a partir do template
+    DATABASES['default']['TEST'] = {
+        'NAME': os.environ.get('DB_NAME', 'test_amparo_db'),
+    }
 
 
 # Password validation
