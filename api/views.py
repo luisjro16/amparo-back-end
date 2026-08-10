@@ -9,9 +9,11 @@ from .models import Paciente, Medicamento, Agendamento, RegistroMedicacao
 from .serializers import PacienteSerializer, MedicamentoSerializer, AgendamentoSerializer, RegistroMedicacaoSerializer, PacienteCreateSerializer, MedicamentoComAgendamentoSerializer, RegistroMedicacaoCreateSerializer, RegistroMedicacaoUpdateSerializer
 
 class PacienteViewSet(viewsets.ModelViewSet):
-    queryset = Paciente.objects.all()
     serializer_class = PacienteSerializer
     
+    def get_queryset(self):
+        return Paciente.objects.filter(pk=self.request.user.pk)
+
     def get_serializer_class(self):
         if self.action == 'create':
             return PacienteCreateSerializer
